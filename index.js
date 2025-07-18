@@ -35,7 +35,18 @@ async function run() {
       const result = await foodCollection.find().toArray();
       res.send(result);
     });
-
+    //featured room only 6 room
+    app.get("/food-featured", async (req, res) => {
+      const result = await foodCollection.find().limit(6).toArray();
+      res.send(result);
+    });
+    //single food details
+     app.get("/food/:id", async (req, res) => {
+      const params = req.params.id;
+      const id = { _id: new ObjectId(params) };
+      const result = await foodCollection.findOne(id);
+      res.send(result);
+    });
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
