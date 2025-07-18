@@ -47,6 +47,18 @@ async function run() {
       const result = await foodCollection.findOne(id);
       res.send(result);
     });
+
+    //update food 
+        app.put("/food/:id", async (req, res) => {
+      const id = req.params.id;
+      const data = req.body;
+      const query = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: data,
+      };
+      const result = await foodCollection.updateOne(query, updatedDoc);
+      res.send(result);
+    });
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
