@@ -63,7 +63,7 @@ async function run() {
       const result = await foodCollection.find().toArray();
       res.send(result);
     });
-    //featured room only 6 room
+    //featured food only 6 food
     app.get("/food-featured", async (req, res) => {
       const result = await foodCollection
         .find()
@@ -72,6 +72,7 @@ async function run() {
         .toArray();
       res.send(result);
     });
+
     //single food details
     app.get("/food/:id", async (req, res) => {
       const params = req.params.id;
@@ -91,12 +92,37 @@ async function run() {
       const result = await foodCollection.updateOne(query, updatedDoc);
       res.send(result);
     });
+    //find food by user email
+    app.get("/foods", async (req, res) => {
+      const email = req.query.email;
+      if (!email) {
+        return res
+          .status(400)
+          .json({ message: "Email query parameter is required" });
+      }
 
-    //find room by user email
-    app.get("/food/:email", async (req, res) => {
-      const email = req.params.email;
-      const query = { email: email };
-      const result = await foodCollection.find(query).toArray();
+      const query = { userEmail: email };
+      try {
+        const result = await foodCollection.find(query).toArray();
+        res.send(result);
+      } catch (error) {
+        console.error("Error fetching data by userEmail:", error);
+        res.status(500).send({ message: "Server error" });
+      }
+    });
+    //only available food list
+    app.get("/available-foods", async (req, res) => {
+      const foods = await foodCollection
+        .find({ availability: "Available" })
+        .toArray();
+      res.send(foods);
+    });
+
+    //delete api 
+    app.delete("/food/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await foodCollection.deleteOne(query);
       res.send(result);
     });
     // Send a ping to confirm a successful connection
