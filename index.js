@@ -110,8 +110,57 @@ async function run() {
         res.status(500).send({ message: "Server error" });
       }
     });
+    //requested
+    app.patch("/food/:id", async (req, res) => {
+      const id = req.params.id;
+      const { userEmail, requestDate, notes } = req.body;
+      if (!userEmail) {
+        return res.status(400).json({ message: "User email required" });
+      }
+      const query = { _id: new ObjectId(id) };
+      // Update document fields: availability + requestInfo (or similar)
+      const updateDoc = {
+        $set: {
+          availability: "requested",
+          requestInfo: {
+            userEmail,
+            requestDate,
+            notes,
+          },
+        },
+      };
+      try {
+        const result = await foodCollection.updateOne(query, updateDoc);
+        res.send(result);
+      } catch (error) {
+        console.error("Error updating food request:", error);
+        res.status(500).json({ message: "Failed to update food request" });
+      }
+    });
+///requested food match with token
+    app.get("/requested-foods", verifyFirebaseToken, async (req, res) => {
+      const email = req.firebaseUser?.email;
 
+      if (!email) {
+        return res
+          .status(400)
+          .json({ message: "User email not found in token" });
+      }
 
+      try {
+        const result = await foodCollection
+          .find({
+            availability: "requested",
+            "requestInfo.userEmail": email,
+          })
+          .toArray();
+
+        res.send(result);
+      } catch (error) {
+        console.error("❌ Error fetching requested foods:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+      }
+    });
 
     //only available food list
     app.get("/available-foods", async (req, res) => {
@@ -127,27 +176,6 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const result = await foodCollection.deleteOne(query);
       res.send(result);
-    });
-    // Update food to mark it as requested
-    app.patch("/food/:id", async (req, res) => {
-      const id = req.params.id;
-      const requestData = req.body;
-
-      const filter = { _id: new ObjectId(id) };
-      const updateDoc = {
-        $set: {
-          status: "requested",
-          requestInfo: requestData,
-        },
-      };
-
-      try {
-        const result = await foodCollection.updateOne(filter, updateDoc);
-        res.send(result);
-      } catch (error) {
-        console.error("PATCH error:", error);
-        res.status(500).send({ message: "Failed to update" });
-      }
     });
 
     // Send a ping to confirm a successful connection
