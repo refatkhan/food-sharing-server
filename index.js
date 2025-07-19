@@ -110,6 +110,9 @@ async function run() {
         res.status(500).send({ message: "Server error" });
       }
     });
+
+
+
     //only available food list
     app.get("/available-foods", async (req, res) => {
       const foods = await foodCollection
@@ -118,13 +121,35 @@ async function run() {
       res.send(foods);
     });
 
-    //delete api 
+    //delete api
     app.delete("/food/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await foodCollection.deleteOne(query);
       res.send(result);
     });
+    // Update food to mark it as requested
+    app.patch("/food/:id", async (req, res) => {
+      const id = req.params.id;
+      const requestData = req.body;
+
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: "requested",
+          requestInfo: requestData,
+        },
+      };
+
+      try {
+        const result = await foodCollection.updateOne(filter, updateDoc);
+        res.send(result);
+      } catch (error) {
+        console.error("PATCH error:", error);
+        res.status(500).send({ message: "Failed to update" });
+      }
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
