@@ -4,6 +4,16 @@ const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const port = process.env.PORT || 3000;
+
+const admin = require("firebase-admin");
+
+const serviceAccount = require("./admin-key.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
+//middle
 app.use(cors());
 app.use(express.json());
 
@@ -16,13 +26,31 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
-
+//firebase token
+const verifyFirebaseToken = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "Unauthorized: No token provided" });
+  }
+  const idToken = authHeader.split(" ")[1];
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    req.firebaseUser = decodedToken; // You can access user info like uid, email, etc.
+    next();
+  } catch (error) {
+    return res
+      .status(401)
+      .json({ message: "Unauthorized: Invalid token from catch" });
+  }
+};
 async function run() {
   const foodCollection = client.db("foodCollection").collection("foods");
 
   try {
-    app.get("/", (req, res) => {
-      res.send("Hello World!");
+    app.get("/", verifyFirebaseToken, async (req, res) => {
+      console.log(req.firebaseUser);
+
+      res.send("Server is running!");
     });
     // add data from client to database
     app.post("/add-food", async (req, res) => {
@@ -37,19 +65,23 @@ async function run() {
     });
     //featured room only 6 room
     app.get("/food-featured", async (req, res) => {
-      const result = await foodCollection.find().limit(6).toArray();
+      const result = await foodCollection
+        .find()
+        .limit(6)
+        .sort({ foodQuantity: -1 })
+        .toArray();
       res.send(result);
     });
     //single food details
-     app.get("/food/:id", async (req, res) => {
+    app.get("/food/:id", async (req, res) => {
       const params = req.params.id;
       const id = { _id: new ObjectId(params) };
       const result = await foodCollection.findOne(id);
       res.send(result);
     });
 
-    //update food 
-        app.put("/food/:id", async (req, res) => {
+    //update food
+    app.put("/food/:id", async (req, res) => {
       const id = req.params.id;
       const data = req.body;
       const query = { _id: new ObjectId(id) };
