@@ -173,14 +173,9 @@ async function run() {
       const result = await foodCollection.deleteOne(query);
       res.send(result);
     });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    
   } finally {
     // Ensures that the client will close when you finish/error
   }
 }
 run().catch(console.dir);
-app.listen(port, () => {
-console.log(`Example app listening on port ${port}`)
-});
