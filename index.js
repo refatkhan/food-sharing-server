@@ -173,7 +173,3 @@ async function run() {
     // Ensures that the client will close when you finish/error
   }
 }
-run().catch(console.dir);
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
-});
