@@ -43,10 +43,8 @@ async function run() {
   const foodCollection = client.db("foodCollection").collection("foods");
 
   try {
-    app.get("/", verifyFirebaseToken, async (req, res) => {
-      console.log(req.firebaseUser);
-
-      res.send("Server is running!");
+    app.get("/", (req, res) => {
+      res.send("Hello World!");
     });
     // add data from client to database
     app.post("/add-food", async (req, res) => {
@@ -61,12 +59,10 @@ async function run() {
     });
     //featured food only 6 food
     app.get("/food-featured", async (req, res) => {
-      const result = await foodCollection
-        .find()
-        .limit(6)
-        .sort({ foodQuantity: -1 })
-        .toArray();
-      res.send(result);
+      const foods = await foodCollection.find().toArray();
+      foods.sort((a, b) => Number(b.foodQuantity) - Number(a.foodQuantity));
+      const featured = foods.slice(0, 6);
+      res.send(featured);
     });
 
     //single food details
@@ -133,7 +129,7 @@ async function run() {
         res.status(500).json({ message: "Failed to update food request" });
       }
     });
-///requested food match with token
+    ///requested food match with token
     app.get("/requested-foods", verifyFirebaseToken, async (req, res) => {
       const email = req.firebaseUser?.email;
 
@@ -173,9 +169,11 @@ async function run() {
       const result = await foodCollection.deleteOne(query);
       res.send(result);
     });
-    
   } finally {
     // Ensures that the client will close when you finish/error
   }
 }
 run().catch(console.dir);
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`);
+});
