@@ -46,7 +46,6 @@ async function run() {
     app.get("/", (req, res) => {
       res.send("Hello World!");
     });
-
     // add data from client to database
     app.post("/add-food", async (req, res) => {
       const body = req.body;
@@ -174,4 +173,3 @@ async function run() {
     // Ensures that the client will close when you finish/error
   }
 }
-module.exports = app;
