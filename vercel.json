@@ -12,9 +12,9 @@
       "dest": "index.js",
       "headers": {
         "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Allow-Origin": "https://food-sharing-2fa12.web.app/",
+        "Access-Control-Allow-Origin": "https://food-sharing-2fa12.web.app",
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "X-Requested-With, Content-Type, Authorization"
+        "Access-Control-Allow-Headers": "Origin, X-Requested-With, Content-Type, Accept, Authorization"
       }
     }
   ]
